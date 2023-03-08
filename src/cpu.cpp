@@ -21,6 +21,77 @@ void CPU::mem_write_uint16_t(uint16_t addr, uint16_t data) {
     mem_write(addr + 1, high);
 }
 
+uint16_t CPU::get_operand_address(AddressingMode &mode) {
+    switch(mode) {
+        case AddressingMode::Immediate:
+        {
+            return program_counter++;
+        }
+    
+        case AddressingMode::ZeroPage:
+        {
+            return mem_read(program_counter);
+        }
+
+        case AddressingMode::ZeroPage_X:
+        {
+            uint8_t pos = mem_read(program_counter);
+            return (pos + register_x) & 0xFF;
+        }
+
+        case AddressingMode::ZeroPage_Y:
+        {
+            uint8_t pos = mem_read(program_counter);
+            return (pos + register_y) & 0xFF;
+        }
+
+        case AddressingMode::Absolute:
+        {
+            return mem_read_uint16_t(program_counter);
+        }
+
+        case AddressingMode::Absolute_X:
+        {
+            uint16_t pos = mem_read_uint16_t(program_counter);
+            return (pos + register_x) & 0xFFFF;
+        }
+
+        case AddressingMode::Absolute_Y:
+        {
+            uint16_t pos = mem_read_uint16_t(program_counter);
+            return (pos + register_y) & 0xFFFF;
+        }
+
+        case AddressingMode::Indirect_X:
+        {
+            uint8_t base = mem_read(program_counter);
+
+            uint8_t ptr = (base + register_x) & 0xFF;
+            uint16_t low = mem_read(ptr);
+            uint16_t high = mem_read((ptr + 1) & 0xFF);
+
+            return (high << 8) | low;
+        }
+
+        case AddressingMode::Indirect_Y:
+        {
+            uint8_t base = mem_read(program_counter);
+
+            uint16_t low = mem_read(base);
+            uint16_t high = mem_read((base + 1) & 0xFF);
+            uint16_t deref_base = (high << 8) | low;
+            uint16_t deref = (deref_base + register_y) & 0xFFFF;
+            return deref;
+        }
+
+        case AddressingMode::Implied:
+        {
+            std::cerr << "mode is not supported" << std::endl;
+            abort();
+        }
+    }
+}
+
 void CPU::load_and_run(std::vector<uint8_t> program) {
     load(program);
     reset();
@@ -28,6 +99,10 @@ void CPU::load_and_run(std::vector<uint8_t> program) {
 }
 
 void CPU::load(std::vector<uint8_t> program) {
+    if(program.size() > 0xFFFF - 0x8000) {
+        std::cerr << "Error: Program is larger than memory capacity." << std::endl;
+        abort();
+    }
     std::copy(program.begin(), program.end(), std::next(memory.begin(), 0x8000));
     mem_write_uint16_t(0xFFFC, 0x8000);
 }
@@ -44,59 +119,33 @@ void CPU::reset() {
 void CPU::run()
 {
     while(true) {
-        uint8_t opcode = mem_read(program_counter);
-        program_counter++;
+        uint8_t opcode = mem_read(program_counter++);
+        
+        auto op = cpu_op_codes[opcode];
+        (this->*op.func)(op.mode);
 
-        switch (opcode)
-        {
-            // BRK - Force Interrupt
-            case 0x00:
-            {
-                return;
-            }
-
-            // LDA - Load Accumulator
-            case 0xA9:
-            {
-                uint8_t param = mem_read(program_counter);
-                program_counter++;
-
-                lda(param);
-                break;
-            }
-
-            case 0xE8:
-            {
-                inx();
-                break;
-            }
-
-            // TAX - Transfer Accumulator to X
-            case 0xAA:
-            {
-                tax();
-                break;
-            }
-
-            default:
-            {
-                break;
-            }
-        }
+        if(opcode == 0x00) return;
     }
 }
 
-void CPU::lda(uint8_t value) {
+void CPU::brk(AddressingMode mode) {
+    status |= Flags::Break;
+}
+
+void CPU::lda(AddressingMode mode) {
+    uint16_t addr = get_operand_address(mode);
+    uint8_t value = mem_read(addr);
+
     register_a = value;
     update_zero_and_negative_flags(register_a);
 }
 
-void CPU::inx() {
+void CPU::inx(AddressingMode mode) {
     register_x++;
     update_zero_and_negative_flags(register_x);
 }
 
-void CPU::tax() {
+void CPU::tax(AddressingMode mode) {
     register_x = register_a;
     update_zero_and_negative_flags(register_x);
 }

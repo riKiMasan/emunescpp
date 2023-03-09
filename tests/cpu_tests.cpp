@@ -10,6 +10,14 @@ TEST(CPUTests, lda_0xa9_immediate_load_data) {
   EXPECT_EQ(cpu.register_a, 0x05);
 }
 
+TEST(CPUTests, lda_from_memory) {
+  CPU cpu = CPU();
+  cpu.mem_write(0x10, 0x55);
+  std::vector<uint8_t> program {0xa5, 0x10, 0x00};
+  cpu.load_and_run(program);
+  EXPECT_EQ(cpu.register_a, 0x55);
+}
+
 TEST(CPUTests, ops_working_together) {
   auto cpu = CPU();
   std::vector<uint8_t> program {0xa9, 0xc0,  0xaa, 0xe8, 0x00};

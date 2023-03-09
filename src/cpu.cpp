@@ -30,41 +30,45 @@ uint16_t CPU::get_operand_address(AddressingMode &mode) {
     
         case AddressingMode::ZeroPage:
         {
-            return mem_read(program_counter);
+            return mem_read(program_counter++);
         }
 
         case AddressingMode::ZeroPage_X:
         {
-            uint8_t pos = mem_read(program_counter);
+            uint8_t pos = mem_read(program_counter++);
             return (pos + register_x) & 0xFF;
         }
 
         case AddressingMode::ZeroPage_Y:
         {
-            uint8_t pos = mem_read(program_counter);
+            uint8_t pos = mem_read(program_counter++);
             return (pos + register_y) & 0xFF;
         }
 
         case AddressingMode::Absolute:
         {
-            return mem_read_uint16_t(program_counter);
+            uint16_t addr = mem_read_uint16_t(program_counter);
+            program_counter += 2;
+            return addr;
         }
 
         case AddressingMode::Absolute_X:
         {
             uint16_t pos = mem_read_uint16_t(program_counter);
+            program_counter += 2;
             return (pos + register_x) & 0xFFFF;
         }
 
         case AddressingMode::Absolute_Y:
         {
             uint16_t pos = mem_read_uint16_t(program_counter);
+            program_counter += 2;
             return (pos + register_y) & 0xFFFF;
         }
 
         case AddressingMode::Indirect_X:
         {
-            uint8_t base = mem_read(program_counter);
+            uint8_t base = mem_read(program_counter++);
 
             uint8_t ptr = (base + register_x) & 0xFF;
             uint16_t low = mem_read(ptr);
@@ -75,7 +79,7 @@ uint16_t CPU::get_operand_address(AddressingMode &mode) {
 
         case AddressingMode::Indirect_Y:
         {
-            uint8_t base = mem_read(program_counter);
+            uint8_t base = mem_read(program_counter++);
 
             uint16_t low = mem_read(base);
             uint16_t high = mem_read((base + 1) & 0xFF);
@@ -121,7 +125,7 @@ void CPU::run()
     while(true) {
         uint8_t opcode = mem_read(program_counter++);
         
-        auto op = cpu_op_codes[opcode];
+        OpCode op = cpu_op_codes[opcode];
         (this->*op.func)(op.mode);
 
         if(opcode == 0x00) return;

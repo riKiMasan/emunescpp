@@ -23,6 +23,18 @@ void CPU::mem_write_uint16_t(uint16_t addr, uint16_t data) {
 
 uint16_t CPU::get_operand_address(AddressingMode &mode) {
     switch(mode) {
+        case AddressingMode::Implied:
+        {
+            std::cerr << "This shouldn't happen." << std::endl;
+            abort();
+        }
+
+        case AddressingMode::Accumulator:
+        {
+            std::cerr << "This shouldn't happen." << std::endl;
+            abort();
+        }
+
         case AddressingMode::Immediate:
         {
             return program_counter++;
@@ -43,6 +55,12 @@ uint16_t CPU::get_operand_address(AddressingMode &mode) {
         {
             uint8_t pos = mem_read(program_counter++);
             return (pos + register_y) & 0xFF;
+        }
+
+        case AddressingMode::Relative:
+        {
+            std::cerr << "TODO" << std::endl;
+            abort();
         }
 
         case AddressingMode::Absolute:
@@ -66,6 +84,12 @@ uint16_t CPU::get_operand_address(AddressingMode &mode) {
             return (pos + register_y) & 0xFFFF;
         }
 
+        case AddressingMode::Indirect:
+        {
+            std::cerr << "TODO" << std::endl;
+            abort();
+        }
+
         case AddressingMode::Indirect_X:
         {
             uint8_t base = mem_read(program_counter++);
@@ -86,12 +110,6 @@ uint16_t CPU::get_operand_address(AddressingMode &mode) {
             uint16_t deref_base = (high << 8) | low;
             uint16_t deref = (deref_base + register_y) & 0xFFFF;
             return deref;
-        }
-
-        case AddressingMode::Implied:
-        {
-            std::cerr << "mode is not supported" << std::endl;
-            abort();
         }
     }
 }
@@ -132,8 +150,121 @@ void CPU::run()
     }
 }
 
+void CPU::op_adc(AddressingMode mode) {
+
+}
+
+void CPU::op_and(AddressingMode mode) {
+    
+}
+
+void CPU::op_asl(AddressingMode mode) {
+    
+}
+
+void CPU::op_bcc(AddressingMode mode) {
+    
+}
+
+void CPU::op_bcs(AddressingMode mode) {
+    
+}
+
+void CPU::op_beq(AddressingMode mode) {
+    
+}
+
+void CPU::op_bit(AddressingMode mode) {
+    
+}
+
+void CPU::op_bmi(AddressingMode mode) {
+    
+}
+
+void CPU::op_bne(AddressingMode mode) {
+    
+}
+
+void CPU::op_bpl(AddressingMode mode) {
+    
+}
+
 void CPU::op_brk(AddressingMode mode) {
     status |= Flags::Break;
+}
+
+void CPU::op_bvc(AddressingMode mode) {
+    
+}
+
+void CPU::op_bvs(AddressingMode mode) {
+    
+}
+
+void CPU::op_clc(AddressingMode mode) {
+    
+}
+
+void CPU::op_cld(AddressingMode mode) {
+    
+}
+
+void CPU::op_cli(AddressingMode mode) {
+    
+}
+
+void CPU::op_clv(AddressingMode mode) {
+    
+}
+
+void CPU::op_cmp(AddressingMode mode) {
+    
+}
+
+void CPU::op_cpx(AddressingMode mode) {
+    
+}
+
+void CPU::op_cpy(AddressingMode mode) {
+    
+}
+
+void CPU::op_dec(AddressingMode mode) {
+    
+}
+
+void CPU::op_dex(AddressingMode mode) {
+    
+}
+
+void CPU::op_dey(AddressingMode mode) {
+    
+}
+
+void CPU::op_eor(AddressingMode mode) {
+    
+}
+
+void CPU::op_inc(AddressingMode mode) {
+    
+}
+
+void CPU::op_inx(AddressingMode mode) {
+    register_x++;
+    update_zero_and_negative_flags(register_x);
+}
+
+void CPU::op_iny(AddressingMode mode) {
+    
+}
+
+void CPU::op_jmp(AddressingMode mode) {
+    
+}
+
+void CPU::op_jsr(AddressingMode mode) {
+    
 }
 
 void CPU::op_lda(AddressingMode mode) {
@@ -144,14 +275,109 @@ void CPU::op_lda(AddressingMode mode) {
     update_zero_and_negative_flags(register_a);
 }
 
-void CPU::op_inx(AddressingMode mode) {
-    register_x++;
-    update_zero_and_negative_flags(register_x);
+void CPU::op_ldx(AddressingMode mode) {
+    
+}
+
+void CPU::op_ldy(AddressingMode mode) {
+    
+}
+
+void CPU::op_lsr(AddressingMode mode) {
+    
+}
+
+void CPU::op_nop(AddressingMode mode) {
+    
+}
+
+void CPU::op_ora(AddressingMode mode) {
+    
+}
+
+void CPU::op_pha(AddressingMode mode) {
+    
+}
+
+void CPU::op_php(AddressingMode mode) {
+    
+}
+
+void CPU::op_pla(AddressingMode mode) {
+    
+}
+
+void CPU::op_plp(AddressingMode mode) {
+    
+}
+
+void CPU::op_rol(AddressingMode mode) {
+    
+}
+
+void CPU::op_ror(AddressingMode mode) {
+    
+}
+
+void CPU::op_rti(AddressingMode mode) {
+    
+}
+
+void CPU::op_rts(AddressingMode mode) {
+    
+}
+
+void CPU::op_sbc(AddressingMode mode) {
+    
+}
+
+void CPU::op_sec(AddressingMode mode) {
+    
+}
+
+void CPU::op_sed(AddressingMode mode) {
+    
+}
+
+void CPU::op_sei(AddressingMode mode) {
+    
+}
+
+void CPU::op_sta(AddressingMode mode) {
+    
+}
+
+void CPU::op_stx(AddressingMode mode) {
+    
+}
+
+void CPU::op_sty(AddressingMode mode) {
+    
 }
 
 void CPU::op_tax(AddressingMode mode) {
     register_x = register_a;
     update_zero_and_negative_flags(register_x);
+}
+
+void CPU::op_tay(AddressingMode mode) {
+    
+}
+
+void CPU::op_tsx(AddressingMode mode) {
+    
+}
+
+void CPU::op_txa(AddressingMode mode) {
+    
+}
+
+void CPU::op_txs(AddressingMode mode) {
+    
+}
+
+void CPU::op_tya(AddressingMode mode) {
+    
 }
 
 void CPU::update_zero_and_negative_flags(uint8_t result) {

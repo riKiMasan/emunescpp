@@ -13,27 +13,30 @@ class CPU
 private:
     std::array<uint8_t, 0xFFFF> memory;
     enum Flags : uint8_t {
-        Carry = 0b00000001,
-        Zero = 0b00000010,
-        Interrupt = 0b00000100,
-        Decimal = 0b00001000,
-        Break = 0b00010000,
-        Unused = 0b00100000,
-        Overflow = 0b01000000,
-        Negative = 0b10000000,
+        Carry = 0b0000'0001,
+        Zero = 0b0000'0010,
+        Interrupt = 0b0000'0100,
+        Decimal = 0b0000'1000,
+        Break = 0b0001'0000,
+        Unused = 0b0010'0000,
+        Overflow = 0b0100'0000,
+        Negative = 0b1000'0000,
     };
 
     enum class AddressingMode {
+        Implied,
+        Accumulator,
         Immediate,
         ZeroPage,
         ZeroPage_X,
         ZeroPage_Y,
+        Relative,
         Absolute,
         Absolute_X,
         Absolute_Y,
+        Indirect,
         Indirect_X,
         Indirect_Y,
-        Implied,
     };
 
     struct OpCode {
@@ -42,12 +45,212 @@ private:
     };
 
     std::unordered_map<uint8_t, OpCode> cpu_op_codes = {
+        {0x69, {&CPU::op_adc, AddressingMode::Immediate}},
+        {0x65, {&CPU::op_adc, AddressingMode::ZeroPage}},
+        {0x75, {&CPU::op_adc, AddressingMode::ZeroPage_X}},
+        {0x6D, {&CPU::op_adc, AddressingMode::Absolute}},
+        {0x7D, {&CPU::op_adc, AddressingMode::Absolute_X}},
+        {0x79, {&CPU::op_adc, AddressingMode::Absolute_Y}},
+        {0x61, {&CPU::op_adc, AddressingMode::Indirect_X}},
+        {0x71, {&CPU::op_adc, AddressingMode::Indirect_Y}},
+        
+        {0x29, {&CPU::op_and, AddressingMode::Immediate}},
+        {0x25, {&CPU::op_and, AddressingMode::ZeroPage}},
+        {0x35, {&CPU::op_and, AddressingMode::ZeroPage_X}},
+        {0x2D, {&CPU::op_and, AddressingMode::Absolute}},
+        {0x3D, {&CPU::op_and, AddressingMode::Absolute_X}},
+        {0x39, {&CPU::op_and, AddressingMode::Absolute_Y}},
+        {0x21, {&CPU::op_and, AddressingMode::Indirect_X}},
+        {0x31, {&CPU::op_and, AddressingMode::Indirect_Y}},
+        
+        {0x0A, {&CPU::op_asl, AddressingMode::Accumulator}},
+        {0x06, {&CPU::op_asl, AddressingMode::ZeroPage}},
+        {0x16, {&CPU::op_asl, AddressingMode::ZeroPage_X}},
+        {0x0E, {&CPU::op_asl, AddressingMode::Absolute}},
+        {0x1E, {&CPU::op_asl, AddressingMode::Absolute_X}},
+
+        {0x90, {&CPU::op_bcc, AddressingMode::Relative}},
+
+        {0xB0, {&CPU::op_bcs, AddressingMode::Relative}},
+        
+        {0xF0, {&CPU::op_beq, AddressingMode::Relative}},
+        
+        {0x24, {&CPU::op_bit, AddressingMode::ZeroPage}},
+        {0x2C, {&CPU::op_bit, AddressingMode::Absolute}},
+        
+        {0x30, {&CPU::op_bmi, AddressingMode::Relative}},
+
+        {0xD0, {&CPU::op_bne, AddressingMode::Relative}},
+        
+        {0x10, {&CPU::op_bpl, AddressingMode::Relative}},
+
         {0x00, {&CPU::op_brk, AddressingMode::Implied}},
+
+        {0x50, {&CPU::op_bvc, AddressingMode::Relative}},
+
+        {0x70, {&CPU::op_bvs, AddressingMode::Relative}},
+
+        {0x18, {&CPU::op_clc, AddressingMode::Implied}},
+
+        {0xD8, {&CPU::op_cld, AddressingMode::Implied}},
+        
+        {0x58, {&CPU::op_cli, AddressingMode::Implied}},
+
+        {0xB8, {&CPU::op_clv, AddressingMode::Implied}},
+        
+        {0xC9, {&CPU::op_cmp, AddressingMode::Immediate}},
+        {0xC5, {&CPU::op_cmp, AddressingMode::ZeroPage}},
+        {0xD5, {&CPU::op_cmp, AddressingMode::ZeroPage_X}},
+        {0xCD, {&CPU::op_cmp, AddressingMode::Absolute}},
+        {0xDD, {&CPU::op_cmp, AddressingMode::Absolute_X}},
+        {0xD9, {&CPU::op_cmp, AddressingMode::Absolute_Y}},
+        {0xC1, {&CPU::op_cmp, AddressingMode::Indirect_X}},
+        {0xD1, {&CPU::op_cmp, AddressingMode::Indirect_Y}},
+        
+        {0xE0, {&CPU::op_cpx, AddressingMode::Immediate}},
+        {0xE4, {&CPU::op_cpx, AddressingMode::ZeroPage}},
+        {0xEC, {&CPU::op_cpx, AddressingMode::Absolute}},
+        
+        {0xC0, {&CPU::op_cpy, AddressingMode::Immediate}},
+        {0xC4, {&CPU::op_cpy, AddressingMode::ZeroPage}},
+        {0xCC, {&CPU::op_cpy, AddressingMode::Absolute}},
+        
+        {0xC6, {&CPU::op_dec, AddressingMode::ZeroPage}},
+        {0xD6, {&CPU::op_dec, AddressingMode::ZeroPage_X}},
+        {0xCE, {&CPU::op_dec, AddressingMode::Absolute}},
+        {0xDE, {&CPU::op_dec, AddressingMode::Absolute_X}},
+
+        {0xCA, {&CPU::op_dex, AddressingMode::Implied}},
+
+        {0x88, {&CPU::op_dey, AddressingMode::Implied}},
+        
+        {0x49, {&CPU::op_eor, AddressingMode::Immediate}},
+        {0x45, {&CPU::op_eor, AddressingMode::ZeroPage}},
+        {0x55, {&CPU::op_eor, AddressingMode::ZeroPage_X}},
+        {0x4D, {&CPU::op_eor, AddressingMode::Absolute}},
+        {0x5D, {&CPU::op_eor, AddressingMode::Absolute_X}},
+        {0x59, {&CPU::op_eor, AddressingMode::Absolute_Y}},
+        {0x41, {&CPU::op_eor, AddressingMode::Indirect_X}},
+        {0x51, {&CPU::op_eor, AddressingMode::Indirect_Y}},
+
+        {0xE6, {&CPU::op_inc, AddressingMode::ZeroPage}},
+        {0xF6, {&CPU::op_inc, AddressingMode::ZeroPage_X}},
+        {0xEE, {&CPU::op_inc, AddressingMode::Absolute}},
+        {0xFE, {&CPU::op_inc, AddressingMode::Absolute_X}},
+        
+        {0xE8, {&CPU::op_inx, AddressingMode::Implied}},
+
+        {0xC8, {&CPU::op_iny, AddressingMode::Implied}},
+        
+        {0x4C, {&CPU::op_jmp, AddressingMode::Absolute}},
+        {0x6C, {&CPU::op_jmp, AddressingMode::Indirect}},
+
+        {0x20, {&CPU::op_jsr, AddressingMode::Absolute}},
+
         {0xA9, {&CPU::op_lda, AddressingMode::Immediate}},
         {0xA5, {&CPU::op_lda, AddressingMode::ZeroPage}},
+        {0xB5, {&CPU::op_lda, AddressingMode::ZeroPage_X}},
         {0xAD, {&CPU::op_lda, AddressingMode::Absolute}},
-        {0xE8, {&CPU::op_inx, AddressingMode::Implied}},
-        {0xAA, {&CPU::op_tax, AddressingMode::Implied}}
+        {0xBD, {&CPU::op_lda, AddressingMode::Absolute_X}},
+        {0xB9, {&CPU::op_lda, AddressingMode::Absolute_Y}},
+        {0xA1, {&CPU::op_lda, AddressingMode::Indirect_X}},
+        {0xB1, {&CPU::op_lda, AddressingMode::Indirect_Y}},
+
+        {0xA2, {&CPU::op_ldx, AddressingMode::Immediate}},
+        {0xA6, {&CPU::op_ldx, AddressingMode::ZeroPage}},
+        {0xB6, {&CPU::op_ldx, AddressingMode::ZeroPage_Y}},
+        {0xAE, {&CPU::op_ldx, AddressingMode::Absolute}},
+        {0xBE, {&CPU::op_ldx, AddressingMode::Absolute_Y}},
+
+        {0xA0, {&CPU::op_ldy, AddressingMode::Immediate}},
+        {0xA4, {&CPU::op_ldy, AddressingMode::ZeroPage}},
+        {0xB4, {&CPU::op_ldy, AddressingMode::ZeroPage_X}},
+        {0xAC, {&CPU::op_ldy, AddressingMode::Absolute}},
+        {0xBC, {&CPU::op_ldy, AddressingMode::Absolute_X}},
+
+        {0x4A, {&CPU::op_lsr, AddressingMode::Accumulator}},
+        {0x46, {&CPU::op_lsr, AddressingMode::ZeroPage}},
+        {0x56, {&CPU::op_lsr, AddressingMode::ZeroPage_X}},
+        {0x4E, {&CPU::op_lsr, AddressingMode::Absolute}},
+        {0x5E, {&CPU::op_lsr, AddressingMode::Absolute_X}},
+
+        {0xEA, {&CPU::op_nop, AddressingMode::Implied}},
+
+        {0x09, {&CPU::op_ora, AddressingMode::Immediate}},
+        {0x05, {&CPU::op_ora, AddressingMode::ZeroPage}},
+        {0x15, {&CPU::op_ora, AddressingMode::ZeroPage_X}},
+        {0x0D, {&CPU::op_ora, AddressingMode::Absolute}},
+        {0x1D, {&CPU::op_ora, AddressingMode::Absolute_X}},
+        {0x19, {&CPU::op_ora, AddressingMode::Absolute_Y}},
+        {0x01, {&CPU::op_ora, AddressingMode::Indirect_X}},
+        {0x11, {&CPU::op_ora, AddressingMode::Indirect_Y}},
+
+        {0x48, {&CPU::op_pha, AddressingMode::Implied}},
+
+        {0x08, {&CPU::op_php, AddressingMode::Implied}},
+
+        {0x68, {&CPU::op_pla, AddressingMode::Implied}},
+
+        {0x28, {&CPU::op_plp, AddressingMode::Implied}},
+
+        {0x2A, {&CPU::op_rol, AddressingMode::Accumulator}},
+        {0x26, {&CPU::op_rol, AddressingMode::ZeroPage}},
+        {0x36, {&CPU::op_rol, AddressingMode::ZeroPage_X}},
+        {0x2E, {&CPU::op_rol, AddressingMode::Absolute}},
+        {0x3E, {&CPU::op_rol, AddressingMode::Absolute_X}},
+
+        {0x6A, {&CPU::op_ror, AddressingMode::Accumulator}},
+        {0x66, {&CPU::op_ror, AddressingMode::ZeroPage}},
+        {0x76, {&CPU::op_ror, AddressingMode::ZeroPage_X}},
+        {0x6E, {&CPU::op_ror, AddressingMode::Absolute}},
+        {0x7E, {&CPU::op_ror, AddressingMode::Absolute_X}},
+
+        {0x40, {&CPU::op_ror, AddressingMode::Implied}},
+
+        {0x60, {&CPU::op_rts, AddressingMode::Implied}},
+
+        {0xE9, {&CPU::op_sbc, AddressingMode::Immediate}},
+        {0xE5, {&CPU::op_sbc, AddressingMode::ZeroPage}},
+        {0xF5, {&CPU::op_sbc, AddressingMode::ZeroPage_X}},
+        {0xED, {&CPU::op_sbc, AddressingMode::Absolute}},
+        {0xFD, {&CPU::op_sbc, AddressingMode::Absolute_X}},
+        {0xF9, {&CPU::op_sbc, AddressingMode::Absolute_Y}},
+        {0xE1, {&CPU::op_sbc, AddressingMode::Indirect_X}},
+        {0xF1, {&CPU::op_sbc, AddressingMode::Indirect_Y}},
+
+        {0x38, {&CPU::op_sec, AddressingMode::Implied}},
+
+        {0xF8, {&CPU::op_sed, AddressingMode::Implied}},
+
+        {0x78, {&CPU::op_sei, AddressingMode::Implied}},
+
+        {0x85, {&CPU::op_sta, AddressingMode::ZeroPage}},
+        {0x95, {&CPU::op_sta, AddressingMode::ZeroPage_X}},
+        {0x8D, {&CPU::op_sta, AddressingMode::Absolute}},
+        {0x9D, {&CPU::op_sta, AddressingMode::Absolute_X}},
+        {0x99, {&CPU::op_sta, AddressingMode::Absolute_Y}},
+        {0x81, {&CPU::op_sta, AddressingMode::Indirect_X}},
+        {0x91, {&CPU::op_sta, AddressingMode::Indirect_Y}},
+
+        {0x86, {&CPU::op_stx, AddressingMode::ZeroPage}},
+        {0x96, {&CPU::op_stx, AddressingMode::ZeroPage_Y}},
+        {0x8E, {&CPU::op_stx, AddressingMode::Absolute}},
+
+        {0x84, {&CPU::op_sty, AddressingMode::ZeroPage}},
+        {0x94, {&CPU::op_sty, AddressingMode::ZeroPage_X}},
+        {0x8C, {&CPU::op_sty, AddressingMode::Absolute}},
+
+        {0xAA, {&CPU::op_tax, AddressingMode::Implied}},
+
+        {0xA8, {&CPU::op_tay, AddressingMode::Implied}},
+
+        {0xBA, {&CPU::op_tsx, AddressingMode::Implied}},
+
+        {0x8A, {&CPU::op_txa, AddressingMode::Implied}},
+
+        {0x9A, {&CPU::op_txs, AddressingMode::Implied}},
+
+        {0x98, {&CPU::op_tya, AddressingMode::Implied}},
     };
     
 

@@ -132,11 +132,11 @@ void CPU::run()
     }
 }
 
-void CPU::brk(AddressingMode mode) {
+void CPU::op_brk(AddressingMode mode) {
     status |= Flags::Break;
 }
 
-void CPU::lda(AddressingMode mode) {
+void CPU::op_lda(AddressingMode mode) {
     uint16_t addr = get_operand_address(mode);
     uint8_t value = mem_read(addr);
 
@@ -144,12 +144,12 @@ void CPU::lda(AddressingMode mode) {
     update_zero_and_negative_flags(register_a);
 }
 
-void CPU::inx(AddressingMode mode) {
+void CPU::op_inx(AddressingMode mode) {
     register_x++;
     update_zero_and_negative_flags(register_x);
 }
 
-void CPU::tax(AddressingMode mode) {
+void CPU::op_tax(AddressingMode mode) {
     register_x = register_a;
     update_zero_and_negative_flags(register_x);
 }

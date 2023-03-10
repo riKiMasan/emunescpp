@@ -42,12 +42,12 @@ private:
     };
 
     std::unordered_map<uint8_t, OpCode> cpu_op_codes = {
-        {0x00, {&CPU::brk, AddressingMode::Implied}},
-        {0xA9, {&CPU::lda, AddressingMode::Immediate}},
-        {0xA5, {&CPU::lda, AddressingMode::ZeroPage}},
-        {0xAD, {&CPU::lda, AddressingMode::Absolute}},
-        {0xE8, {&CPU::inx, AddressingMode::Implied}},
-        {0xAA, {&CPU::tax, AddressingMode::Implied}}
+        {0x00, {&CPU::op_brk, AddressingMode::Implied}},
+        {0xA9, {&CPU::op_lda, AddressingMode::Immediate}},
+        {0xA5, {&CPU::op_lda, AddressingMode::ZeroPage}},
+        {0xAD, {&CPU::op_lda, AddressingMode::Absolute}},
+        {0xE8, {&CPU::op_inx, AddressingMode::Implied}},
+        {0xAA, {&CPU::op_tax, AddressingMode::Implied}}
     };
     
 
@@ -75,62 +75,62 @@ public:
 
 
     // instructions
-    void adc(AddressingMode mode);
-    void andy(AddressingMode mode);
-    void asl(AddressingMode mode);
-    void bcc(AddressingMode mode);
-    void bcs(AddressingMode mode);
-    void beq(AddressingMode mode);
-    void bit(AddressingMode mode);
-    void bmi(AddressingMode mode);
-    void bne(AddressingMode mode);
-    void bpl(AddressingMode mode);
-    void brk(AddressingMode mode);
-    void bvc(AddressingMode mode);
-    void bvs(AddressingMode mode);
-    void clc(AddressingMode mode);
-    void cld(AddressingMode mode);
-    void cli(AddressingMode mode);
-    void clv(AddressingMode mode);
-    void cmp(AddressingMode mode);
-    void cpx(AddressingMode mode);
-    void cpy(AddressingMode mode);
-    void dec(AddressingMode mode);
-    void dex(AddressingMode mode);
-    void dey(AddressingMode mode);
-    void eor(AddressingMode mode);
-    void inc(AddressingMode mode);
-    void inx(AddressingMode mode);
-    void iny(AddressingMode mode);
-    void jmp(AddressingMode mode);
-    void jsr(AddressingMode mode);
-    void lda(AddressingMode mode);
-    void ldx(AddressingMode mode);
-    void ldy(AddressingMode mode);
-    void lsr(AddressingMode mode);
-    void nop(AddressingMode mode);
-    void ora(AddressingMode mode);
-    void pha(AddressingMode mode);
-    void php(AddressingMode mode);
-    void pla(AddressingMode mode);
-    void plp(AddressingMode mode);
-    void rol(AddressingMode mode);
-    void ror(AddressingMode mode);
-    void rti(AddressingMode mode);
-    void rts(AddressingMode mode);
-    void sbc(AddressingMode mode);
-    void sec(AddressingMode mode);
-    void sed(AddressingMode mode);
-    void sei(AddressingMode mode);
-    void sta(AddressingMode mode);
-    void stx(AddressingMode mode);
-    void sty(AddressingMode mode);
-    void tax(AddressingMode mode);
-    void tay(AddressingMode mode);
-    void tsx(AddressingMode mode);
-    void txa(AddressingMode mode);
-    void txs(AddressingMode mode);
-    void tya(AddressingMode mode);
+    void op_adc(AddressingMode mode);
+    void op_and(AddressingMode mode);
+    void op_asl(AddressingMode mode);
+    void op_bcc(AddressingMode mode);
+    void op_bcs(AddressingMode mode);
+    void op_beq(AddressingMode mode);
+    void op_bit(AddressingMode mode);
+    void op_bmi(AddressingMode mode);
+    void op_bne(AddressingMode mode);
+    void op_bpl(AddressingMode mode);
+    void op_brk(AddressingMode mode);
+    void op_bvc(AddressingMode mode);
+    void op_bvs(AddressingMode mode);
+    void op_clc(AddressingMode mode);
+    void op_cld(AddressingMode mode);
+    void op_cli(AddressingMode mode);
+    void op_clv(AddressingMode mode);
+    void op_cmp(AddressingMode mode);
+    void op_cpx(AddressingMode mode);
+    void op_cpy(AddressingMode mode);
+    void op_dec(AddressingMode mode);
+    void op_dex(AddressingMode mode);
+    void op_dey(AddressingMode mode);
+    void op_eor(AddressingMode mode);
+    void op_inc(AddressingMode mode);
+    void op_inx(AddressingMode mode);
+    void op_iny(AddressingMode mode);
+    void op_jmp(AddressingMode mode);
+    void op_jsr(AddressingMode mode);
+    void op_lda(AddressingMode mode);
+    void op_ldx(AddressingMode mode);
+    void op_ldy(AddressingMode mode);
+    void op_lsr(AddressingMode mode);
+    void op_nop(AddressingMode mode);
+    void op_ora(AddressingMode mode);
+    void op_pha(AddressingMode mode);
+    void op_php(AddressingMode mode);
+    void op_pla(AddressingMode mode);
+    void op_plp(AddressingMode mode);
+    void op_rol(AddressingMode mode);
+    void op_ror(AddressingMode mode);
+    void op_rti(AddressingMode mode);
+    void op_rts(AddressingMode mode);
+    void op_sbc(AddressingMode mode);
+    void op_sec(AddressingMode mode);
+    void op_sed(AddressingMode mode);
+    void op_sei(AddressingMode mode);
+    void op_sta(AddressingMode mode);
+    void op_stx(AddressingMode mode);
+    void op_sty(AddressingMode mode);
+    void op_tax(AddressingMode mode);
+    void op_tay(AddressingMode mode);
+    void op_tsx(AddressingMode mode);
+    void op_txa(AddressingMode mode);
+    void op_txs(AddressingMode mode);
+    void op_tya(AddressingMode mode);
 
     //helper functions
     void update_zero_and_negative_flags(uint8_t result);
